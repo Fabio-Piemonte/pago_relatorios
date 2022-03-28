@@ -4,20 +4,6 @@ from openpyxl.styles import Font, PatternFill
 import json
 from urllib.request import urlopen
 
-import os
-import pathlib
-
-from flask import Flask, send_from_directory
-
-app = Flask(__name__)
-
-SHEET_PATH = pathlib.Path().resolve()
-SHEET_NAME = "testeRelatorio.xlsx"
-
-@app.route("/")
-def hello_world():
-    create_sheet()
-    return send_from_directory(SHEET_PATH, SHEET_NAME, as_attachment=True)
 
 def create_xlsx():
     return Workbook()
@@ -46,7 +32,7 @@ def set_format_xlsx(workbook, nome_empresa):
 
 def add_values_xlsx(planilha, data):
     starting_row = 4
-    for item in data["Pagamentos"]:
+    for item in data:
         planilha.cell(row=starting_row, column=1).value = item['name']
         planilha.cell(row=starting_row, column=2).value = item['value']
         planilha.cell(row=starting_row, column=3).value = item['type']
@@ -56,20 +42,19 @@ def add_values_xlsx(planilha, data):
 def soma_total(planilha, data):
     soma_valor = 0
     starting_row = 4
-    for item in data["Pagamentos"]:
+    for item in data:
         soma_valor += item['value']
         starting_row += 1
     planilha.cell(row = starting_row + 1, column=1).value = 'Total'
     planilha.cell(row = starting_row + 1, column=2).value = soma_valor
     return planilha
 
-def create_sheet():
-    # url = "http://localhost:3000/Pagamentos"
-    # json_data = urlopen(url)
-    # data = json.loads(json_data.read())
+def main():
+    url = "http://localhost:3000/Pagamentos"
+    json_data = urlopen(url)
 
-    with open('db.json', encoding="utf8") as fp:
-        data = json.load(fp)
+    data = json.loads(json_data.read())
+
 
     workbook = create_xlsx()
     planilha = set_format_xlsx(workbook, 'Pagô')
@@ -77,4 +62,11 @@ def create_sheet():
     add_values_xlsx(planilha, data)
     soma_total(planilha,data)
 
-    workbook.save(os.path.join(SHEET_PATH, SHEET_NAME))
+    workbook.save('/Users/piemonte/Desktop/Programas/pythonProject/testeRelatorio.xlsx')
+
+if __name__ == '__main__':
+    main()
+
+
+
+
